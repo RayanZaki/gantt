@@ -561,6 +561,22 @@ export default class Gantt {
             append_to: this.$wrapper,
         });
         this.$task_info_panel.style.width = panel_width + 'px';
+        // Prepend to ensure it's on the left
+        this.$wrapper.insertBefore(this.$task_info_panel, this.$wrapper.firstChild);
+
+        // Add toggle button (outside the panel)
+        const $toggle_btn = this.create_el({
+            classes: 'task-info-toggle',
+            append_to: this.$wrapper,
+            type: 'button',
+        });
+        $toggle_btn.innerHTML = '◀';
+        $toggle_btn.title = 'Toggle task info panel';
+        $toggle_btn.style.setProperty('--panel-width', panel_width + 'px');
+        $toggle_btn.onclick = () => {
+            this.$task_info_panel.classList.toggle('collapsed');
+            $toggle_btn.innerHTML = this.$task_info_panel.classList.contains('collapsed') ? '▶' : '◀';
+        };
 
         // Create header
         this.$task_info_header = this.create_el({
@@ -568,6 +584,44 @@ export default class Gantt {
             append_to: this.$task_info_panel,
         });
         this.$task_info_header.style.height = this.config.header_height + 'px';
+
+        // Add search box if enabled
+        if (this.options.task_info_enable_search) {
+            const $search_container = this.create_el({
+                classes: 'task-info-search',
+                append_to: this.$task_info_header,
+            });
+            
+            const $search_input = document.createElement('input');
+            $search_input.type = 'text';
+            $search_input.placeholder = 'Search tasks...';
+            $search_input.className = 'task-info-search-input';
+            $search_container.appendChild($search_input);
+            
+            // Search functionality
+            $search_input.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const rows = this.$task_info_body.querySelectorAll('.task-info-row');
+                
+                rows.forEach(row => {
+                    const taskId = row.getAttribute('data-task-id');
+                    const task = this.tasks.find(t => t.id === taskId);
+                    
+                    if (!task) return;
+                    
+                    const taskText = Object.values(task)
+                        .filter(v => typeof v === 'string' || typeof v === 'number')
+                        .join(' ')
+                        .toLowerCase();
+                    
+                    if (taskText.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
 
         // Add column headers
         let left = 0;
@@ -599,6 +653,41 @@ export default class Gantt {
             });
             $row.style.height = row_height + 'px';
             $row.style.top = (index * row_height) + 'px';
+            $row.setAttribute('data-task-id', task.id);
+            
+            // Click on row to scroll to task in gantt chart
+            $row.style.cursor = 'pointer';
+            $row.addEventListener('click', (e) => {
+                // Don't trigger if clicking on action button
+                if (e.target.classList.contains('task-info-actions')) return;
+                
+                const bar = this.bars.find(b => b.task.id === task.id);
+                if (bar) {
+                    // Scroll to the bar's position
+                    const barX = bar.group.getBBox().x;
+                    const containerWidth = this.$container.clientWidth;
+                    const scrollLeft = barX - (containerWidth / 2) + (bar.group.getBBox().width / 2);
+                    
+                    this.$container.scrollTo({
+                        left: Math.max(0, scrollLeft),
+                        behavior: 'smooth'
+                    });
+                    
+                    // Highlight the bar briefly
+                    bar.group.classList.add('highlighted');
+                    setTimeout(() => {
+                        bar.group.classList.remove('highlighted');
+                    }, 2000);
+                }
+            });
+            
+            // Apply custom row color if provided
+            if (this.options.task_info_row_color && typeof this.options.task_info_row_color === 'function') {
+                const color = this.options.task_info_row_color(task);
+                if (color) {
+                    $row.style.backgroundColor = color;
+                }
+            }
 
             let left = 0;
             for (const col of this.options.task_info_columns) {
@@ -608,14 +697,41 @@ export default class Gantt {
                     append_to: $row,
                 });
                 
-                let value = task[col.field];
-                if (col.formatter && typeof col.formatter === 'function') {
-                    value = col.formatter(value, task);
+                // Use custom render function if provided, otherwise use formatter or raw value
+                if (col.render && typeof col.render === 'function') {
+                    const rendered = col.render(task, $cell);
+                    if (typeof rendered === 'string') {
+                        $cell.innerHTML = rendered;
+                    }
+                } else {
+                    let value = task[col.field];
+                    let displayValue = value;
+                    if (col.formatter && typeof col.formatter === 'function') {
+                        displayValue = col.formatter(value, task);
+                    }
+                    $cell.textContent = displayValue ?? '';
+                    $cell.title = displayValue ?? ''; // Add tooltip
                 }
-                $cell.textContent = value ?? '';
+                
                 $cell.style.width = width + 'px';
                 $cell.style.left = left + 'px';
                 left += width;
+            }
+            
+            // Add actions menu if callback is provided
+            if (this.options.task_info_on_row_click) {
+                const $actions = this.create_el({
+                    classes: 'task-info-actions',
+                    append_to: $row,
+                    type: 'button',
+                });
+                $actions.innerHTML = '⋮';
+                $actions.title = 'Actions';
+                $actions.style.right = '5px';
+                $actions.onclick = (e) => {
+                    e.stopPropagation();
+                    this.options.task_info_on_row_click(task, e, $actions);
+                };
             }
         });
 

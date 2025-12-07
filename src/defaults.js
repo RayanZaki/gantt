@@ -156,7 +156,10 @@ const DEFAULT_OPTIONS = {
     view_mode_select: false,
     view_modes: DEFAULT_VIEW_MODES,
     is_weekend: (d) => d.getDay() === 0 || d.getDay() === 6,
-    task_info_columns: null, // Array of {label: string, field: string, width: number, formatter?: function}
+    task_info_columns: null, // Array of {label: string, field: string, width: number, formatter?: function, render?: function}
+    task_info_row_color: null, // Function (task) => color string
+    task_info_on_row_click: null, // Function (task, event) => void for custom actions
+    task_info_enable_search: false, // Enable search box in task info panel
 };
 
 export { DEFAULT_OPTIONS, DEFAULT_VIEW_MODES };

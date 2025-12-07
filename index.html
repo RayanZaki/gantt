@@ -462,7 +462,7 @@
                 {
                     start: daysSince(-7),
                     end: daysSince(-5),
-                    name: 'Initial brainstorming',
+                    name: 'Initial brainstorming asdasd asdasdas dasdasda sda sdasd asd asd a',
                     id: 'Task 0',
                     progress: random(),
                 },
@@ -573,8 +573,37 @@
                         field: 'important',
                         width: 100,
                         formatter: (value) => value ? 'Important' : 'Normal'
+                    },
+                     {
+                        label: 'Start Date',
+                        field: 'start',
+                        width: 100,
+                        formatter: (value) => {
+                            const date = new Date(value);
+                            return date.toISOString().split('T')[0];
+                        }
                     }
                 ],
+                // Custom row colors based on task importance
+                task_info_row_color: (task) => {
+                    if (task.important) return '#fff3cd';
+                    return null; // Use default color
+                },
+                // Custom actions menu
+                task_info_on_row_click: (task, event, button) => {
+                    // Show a simple menu or perform actions
+                    const actions = [
+                        `Edit "${task.name}"`,
+                        `Delete "${task.name}"`,
+                        `Duplicate "${task.name}"`
+                    ];
+                    const choice = prompt('Choose action:\n' + actions.join('\n') + '\n\nEnter 1, 2, or 3:');
+                    if (choice) {
+                        alert(`You selected: ${actions[parseInt(choice) - 1]}`);
+                    }
+                },
+                // Enable search functionality
+                task_info_enable_search: true,
                 view_mode: 'Day',
                 scroll_to: 'today',
             });
