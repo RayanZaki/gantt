@@ -382,6 +382,10 @@ export default class Gantt {
     }
 
     render() {
+        // Preserve search input value if it exists
+        const searchInput = this.$task_info_panel?.querySelector('.task-info-search-input');
+        const searchValue = searchInput?.value || '';
+        
         this.clear();
         this.setup_layers();
         this.make_grid();
@@ -392,6 +396,15 @@ export default class Gantt {
         this.map_arrows_on_bars();
         this.set_dimensions();
         this.set_scroll_position(this.options.scroll_to);
+        
+        // Restore search input value and trigger search
+        if (searchValue && this.$task_info_panel) {
+            const newSearchInput = this.$task_info_panel.querySelector('.task-info-search-input');
+            if (newSearchInput) {
+                newSearchInput.value = searchValue;
+                newSearchInput.dispatchEvent(new Event('input'));
+            }
+        }
     }
 
     setup_layers() {
