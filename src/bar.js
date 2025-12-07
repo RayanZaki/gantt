@@ -419,7 +419,7 @@ export default class Bar {
         });
     }
 
-    update_bar_position({ x = null, width = null }) {
+    update_bar_position({ x = null, width = null, y = null }) {
         const bar = this.$bar;
 
         if (x) {
@@ -437,6 +437,16 @@ export default class Bar {
         if (width > 0) {
             this.update_attr(bar, 'width', width);
             this.$date_highlight.style.width = width + 'px';
+        }
+        if (y !== null) {
+            this.y = y;
+            this.update_attr(bar, 'y', y);
+            this.update_attr(this.$bar_progress, 'y', y);
+            this.update_attr(this.$bar_expected_progress, 'y', y);
+            this.update_handle_position();
+            this.update_label_position();
+            this.update_arrow_position();
+            this.$date_highlight.style.top = y - this.gantt.options.padding / 2 + 'px';
         }
 
         this.update_label_position();

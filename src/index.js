@@ -16,6 +16,9 @@ export default class Gantt {
         this.setup_tasks(tasks);
         this.change_view_mode();
         this.bind_events();
+        
+        // Track search/filter state
+        this._filtered_tasks = null;
     }
 
     setup_wrapper(element) {
@@ -382,9 +385,10 @@ export default class Gantt {
     }
 
     render() {
-        // Preserve search input value if it exists
+        // Preserve task info panel state
         const searchInput = this.$task_info_panel?.querySelector('.task-info-search-input');
         const searchValue = searchInput?.value || '';
+        const isPanelCollapsed = this.$task_info_panel?.classList.contains('collapsed');
         
         this.clear();
         this.setup_layers();
@@ -397,12 +401,27 @@ export default class Gantt {
         this.set_dimensions();
         this.set_scroll_position(this.options.scroll_to);
         
-        // Restore search input value and trigger search
-        if (searchValue && this.$task_info_panel) {
-            const newSearchInput = this.$task_info_panel.querySelector('.task-info-search-input');
-            if (newSearchInput) {
-                newSearchInput.value = searchValue;
-                newSearchInput.dispatchEvent(new Event('input'));
+        // Restore task info panel state
+        if (this.$task_info_panel) {
+            // Restore collapsed state
+            if (isPanelCollapsed) {
+                this.$task_info_panel.classList.add('collapsed');
+                const toggleBtn = this.$wrapper?.querySelector('.task-info-toggle');
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = '▶';
+                }
+            }
+            
+            // Restore search input value and reapply filter
+            if (searchValue) {
+                const newSearchInput = this.$task_info_panel.querySelector('.task-info-search-input');
+                if (newSearchInput) {
+                    newSearchInput.value = searchValue;
+                    // Reapply the filter using the stored function
+                    if (this.apply_task_filter) {
+                        this.apply_task_filter(searchValue);
+                    }
+                }
             }
         }
     }
@@ -611,28 +630,82 @@ export default class Gantt {
             $search_input.className = 'task-info-search-input';
             $search_container.appendChild($search_input);
             
+            // Create filter function that can be called from anywhere
+            this.apply_task_filter = (searchTerm) => {
+                const rows = this.$task_info_body?.querySelectorAll('.task-info-row');
+                if (!rows) return;
+                
+                if (!searchTerm) {
+                    // Reset to original order and show all
+                    this._filtered_tasks = null;
+                    const row_height = this.options.bar_height + this.options.padding;
+                    this.tasks.forEach((task, index) => {
+                        const row = Array.from(rows).find(r => r.getAttribute('data-task-id') === task.id);
+                        const bar = this.bars?.find(b => b.task.id === task.id);
+                        
+                        if (row) {
+                            row.style.display = '';
+                            row.style.top = (index * row_height) + 'px';
+                        }
+                        if (bar) {
+                            bar.group.style.display = '';
+                            const newY = this.config.header_height + (index * row_height) + this.options.padding / 2;
+                            bar.update_bar_position({ y: newY });
+                        }
+                    });
+                    // Show all arrows
+                    this.arrows?.forEach(arrow => {
+                        arrow.element.style.display = '';
+                    });
+                } else {
+                    // Filter and reorder
+                    const filteredTasks = this.tasks.filter(task => {
+                        const taskText = Object.values(task)
+                            .filter(v => typeof v === 'string' || typeof v === 'number')
+                            .join(' ')
+                            .toLowerCase();
+                        return taskText.includes(searchTerm.toLowerCase());
+                    });
+                    
+                    this._filtered_tasks = filteredTasks;
+                    const row_height = this.options.bar_height + this.options.padding;
+                    
+                    // Update positions for all tasks
+                    let visibleIndex = 0;
+                    this.tasks.forEach((task) => {
+                        const row = Array.from(rows).find(r => r.getAttribute('data-task-id') === task.id);
+                        const bar = this.bars?.find(b => b.task.id === task.id);
+                        
+                        if (filteredTasks.includes(task)) {
+                            // Show and reposition
+                            if (row) {
+                                row.style.display = '';
+                                row.style.top = (visibleIndex * row_height) + 'px';
+                            }
+                            if (bar) {
+                                bar.group.style.display = '';
+                                const newY = this.config.header_height + (visibleIndex * row_height) + this.options.padding / 2;
+                                bar.update_bar_position({ y: newY });
+                            }
+                            visibleIndex++;
+                        } else {
+                            // Hide non-matching tasks
+                            if (row) row.style.display = 'none';
+                            if (bar) bar.group.style.display = 'none';
+                        }
+                    });
+                    
+                    // Hide all dependency arrows during search
+                    this.arrows?.forEach(arrow => {
+                        arrow.element.style.display = 'none';
+                    });
+                }
+            };
+            
             // Search functionality
             $search_input.addEventListener('input', (e) => {
                 const searchTerm = e.target.value.toLowerCase();
-                const rows = this.$task_info_body.querySelectorAll('.task-info-row');
-                
-                rows.forEach(row => {
-                    const taskId = row.getAttribute('data-task-id');
-                    const task = this.tasks.find(t => t.id === taskId);
-                    
-                    if (!task) return;
-                    
-                    const taskText = Object.values(task)
-                        .filter(v => typeof v === 'string' || typeof v === 'number')
-                        .join(' ')
-                        .toLowerCase();
-                    
-                    if (taskText.includes(searchTerm)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
+                this.apply_task_filter(searchTerm);
             });
         }
 

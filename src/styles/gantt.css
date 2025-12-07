@@ -348,7 +348,7 @@
 .task-info-col-header {
     position: absolute;
     top: 0;
-    height: calc(100% - 40px);
+    height: 100%;
     display: flex;
     align-items: center;
     padding: 0 8px;
@@ -361,6 +361,11 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     pointer-events: none;
+}
+
+/* When search is enabled, reduce header height to make room */
+.task-info-header:has(.task-info-search) .task-info-col-header {
+    height: calc(100% - 40px);
 }
 
 .task-info-body {
