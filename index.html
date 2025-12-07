@@ -84,6 +84,21 @@
 
                 <div class="chart col-md-9" id="mutability"></div>
             </div>
+            
+            <div class="row my-5">
+                <div class="col-md-3 px-5 py-1">
+                    <h3 class="text-center">Task Info Columns</h3>
+                    <p>
+                        Display task information in fixed columns on the left side.
+                        The columns stay visible while scrolling the gantt chart.
+                    </p>
+                    <small class="text-muted">
+                        Configure columns via the <code>task_info_columns</code> option.
+                    </small>
+                </div>
+                <div class="chart col-md-9" id="task-info-demo"></div>
+            </div>
+            
             <div class="row my-5">
                 <div class="chart col-md-9" id="sideheader"></div>
                 <div class="col-md-3 px-5 py-1">
@@ -543,6 +558,27 @@
             ];
 
             const mutablity = new Gantt('#mutability', tasks);
+            
+            const taskInfoDemo = new Gantt('#task-info-demo', tasksMany, {
+                task_info_columns: [
+                    { label: 'Task', field: 'name', width: 200 },
+                    { 
+                        label: 'Progress', 
+                        field: 'progress', 
+                        width: 80,
+                        formatter: (value) => Math.round(value) + '%'
+                    },
+                    {
+                        label: 'Status',
+                        field: 'important',
+                        width: 100,
+                        formatter: (value) => value ? 'Important' : 'Normal'
+                    }
+                ],
+                view_mode: 'Day',
+                scroll_to: 'today',
+            });
+            
             const sideheader = new Gantt('#sideheader', tasksSpread, {
                 today_button: true,
                 view_mode_select: true,

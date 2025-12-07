@@ -1,13 +1,22 @@
 @import './light.css';
 
+.gantt-wrapper {
+    position: relative;
+    display: flex;
+    width: 100%;
+    border-radius: 8px;
+}
+
 .gantt-container {
     line-height: 14.5px;
     position: relative;
     overflow: auto;
     font-size: 12px;
     height: var(--gv-grid-height);
-    width: 100%;
-    border-radius: 8px;
+    flex: 1;
+    border-radius: 0;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
 
     & .popup-wrapper {
         position: absolute;
@@ -232,6 +241,79 @@
     .hide {
         display: none;
     }
+}
+
+.task-info-panel {
+    position: relative;
+    background: var(--g-header-background);
+    border-right: 2px solid var(--g-row-border-color);
+    flex-shrink: 0;
+    height: var(--gv-grid-height);
+    overflow: hidden;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.task-info-header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--g-header-background);
+    border-bottom: 1px solid var(--g-row-border-color);
+    z-index: 1002;
+}
+
+.task-info-col-header {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--g-text-dark);
+    border-right: 1px solid var(--g-row-border-color);
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.task-info-body {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.task-info-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-bottom: 1px solid var(--g-row-border-color);
+    background: var(--g-row-color);
+}
+
+.task-info-row:hover {
+    background: var(--g-row-color-hover, rgba(0, 0, 0, 0.02));
+}
+
+.task-info-cell {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 12px;
+    color: var(--g-text-dark);
+    border-right: 1px solid var(--g-row-border-color);
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .gantt {

@@ -156,6 +156,7 @@ const DEFAULT_OPTIONS = {
     view_mode_select: false,
     view_modes: DEFAULT_VIEW_MODES,
     is_weekend: (d) => d.getDay() === 0 || d.getDay() === 6,
+    task_info_columns: null, // Array of {label: string, field: string, width: number, formatter?: function}
 };
 
 export { DEFAULT_OPTIONS, DEFAULT_VIEW_MODES };

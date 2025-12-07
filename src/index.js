@@ -47,23 +47,40 @@ export default class Gantt {
 
         // svg element
         if (!svg_element) {
-            // create it
-            this.$svg = createSVG('svg', {
+            // create wrapper first
+            this.$wrapper = this.create_el({
+                classes: 'gantt-wrapper',
                 append_to: wrapper_element,
+            });
+            
+            this.$container = this.create_el({
+                classes: 'gantt-container',
+                append_to: this.$wrapper,
+            });
+            
+            // create svg
+            this.$svg = createSVG('svg', {
+                append_to: this.$container,
                 class: 'gantt',
             });
         } else {
             this.$svg = svg_element;
             this.$svg.classList.add('gantt');
+            
+            // create wrapper and move svg into it
+            this.$wrapper = this.create_el({
+                classes: 'gantt-wrapper',
+                append_to: this.$svg.parentElement,
+            });
+
+            this.$container = this.create_el({
+                classes: 'gantt-container',
+                append_to: this.$wrapper,
+            });
+            
+            this.$container.appendChild(this.$svg);
         }
 
-        // wrapper element
-        this.$container = this.create_el({
-            classes: 'gantt-container',
-            append_to: this.$svg.parentElement,
-        });
-
-        this.$container.appendChild(this.$svg);
         this.$popup_wrapper = this.create_el({
             classes: 'popup-wrapper',
             append_to: this.$container,
@@ -400,6 +417,7 @@ export default class Gantt {
     }
 
     make_grid() {
+        this.make_task_info_panel();
         this.make_grid_background();
         this.make_grid_rows();
         this.make_grid_header();
@@ -524,6 +542,84 @@ export default class Gantt {
             this.$side_header.prepend($today_button);
             this.$today_button = $today_button;
         }
+    }
+
+    make_task_info_panel() {
+        if (!this.options.task_info_columns || !this.options.task_info_columns.length) {
+            return;
+        }
+
+        // Calculate panel width
+        const panel_width = this.options.task_info_columns.reduce(
+            (sum, col) => sum + (col.width || 100),
+            0
+        );
+
+        // Create the sidebar panel
+        this.$task_info_panel = this.create_el({
+            classes: 'task-info-panel',
+            append_to: this.$wrapper,
+        });
+        this.$task_info_panel.style.width = panel_width + 'px';
+
+        // Create header
+        this.$task_info_header = this.create_el({
+            classes: 'task-info-header',
+            append_to: this.$task_info_panel,
+        });
+        this.$task_info_header.style.height = this.config.header_height + 'px';
+
+        // Add column headers
+        let left = 0;
+        for (const col of this.options.task_info_columns) {
+            const width = col.width || 100;
+            const $header = this.create_el({
+                classes: 'task-info-col-header',
+                append_to: this.$task_info_header,
+            });
+            $header.textContent = col.label || col.field;
+            $header.style.width = width + 'px';
+            $header.style.left = left + 'px';
+            left += width;
+        }
+
+        // Create body container
+        this.$task_info_body = this.create_el({
+            classes: 'task-info-body',
+            append_to: this.$task_info_panel,
+        });
+        this.$task_info_body.style.top = this.config.header_height + 'px';
+
+        // Create task rows
+        const row_height = this.options.bar_height + this.options.padding;
+        this.tasks.forEach((task, index) => {
+            const $row = this.create_el({
+                classes: 'task-info-row',
+                append_to: this.$task_info_body,
+            });
+            $row.style.height = row_height + 'px';
+            $row.style.top = (index * row_height) + 'px';
+
+            let left = 0;
+            for (const col of this.options.task_info_columns) {
+                const width = col.width || 100;
+                const $cell = this.create_el({
+                    classes: 'task-info-cell',
+                    append_to: $row,
+                });
+                
+                let value = task[col.field];
+                if (col.formatter && typeof col.formatter === 'function') {
+                    value = col.formatter(value, task);
+                }
+                $cell.textContent = value ?? '';
+                $cell.style.width = width + 'px';
+                $cell.style.left = left + 'px';
+                left += width;
+            }
+        });
+
+        // Don't set margin - flexbox handles the layout
     }
 
     make_grid_ticks() {
@@ -1573,6 +1669,7 @@ export default class Gantt {
         this.$side_header?.remove?.();
         this.$current_highlight?.remove?.();
         this.$extras?.remove?.();
+        this.$task_info_panel?.remove?.();
         this.popup?.hide?.();
     }
 }
