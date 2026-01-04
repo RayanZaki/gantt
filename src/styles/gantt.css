@@ -271,8 +271,7 @@
 .task-info-toggle {
     position: absolute;
     left: 0;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 50px;
     background: var(--g-actions-background);
     border: 1px solid var(--g-row-border-color);
     border-radius: 3px;
@@ -287,6 +286,7 @@
     padding: 0;
     color: var(--g-text-dark);
     transition: left 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .task-info-panel ~ .task-info-toggle {

@@ -61,7 +61,10 @@ let tasks = [
     name: 'Redesign website',
     start: '2016-12-28',
     end: '2016-12-31',
-    progress: 20
+    progress: 20,
+    color: '#3498db',              // Custom bar color (optional)
+    color_progress: '#2980b9',      // Custom progress bar color (optional)
+    custom_class: 'important-task'  // Custom CSS class for styling (optional)
   },
   ...
 ]
@@ -71,6 +74,25 @@ let gantt = new Gantt("#gantt", tasks);
 gantt.tasks.append(...)
 gantt.tasks.refresh()
 ```
+
+### Task Properties
+
+Each task object can have the following properties:
+
+| **Property**       | **Description**                                    | **Type**   | **Required** |
+| ------------------ | -------------------------------------------------- | ---------- | ------------ |
+| `id`               | Unique identifier for the task                     | string     | Yes          |
+| `name`             | Display name of the task                           | string     | Yes          |
+| `start`            | Start date of the task                             | string     | Yes          |
+| `end`              | End date of the task (or use `duration`)           | string     | Yes*         |
+| `duration`         | Duration instead of end date (e.g., '3d', '2w')    | string     | Yes*         |
+| `progress`         | Task completion percentage (0-100)                 | number     | No           |
+| `dependencies`     | Comma-separated IDs of dependent tasks             | string     | No           |
+| `color`            | Custom color for the task bar (hex, rgb, or CSS color) | string | No           |
+| `color_progress`   | Custom color for the progress bar                  | string     | No           |
+| `custom_class`     | CSS class name(s) for custom styling               | string     | No           |
+
+*Either `end` or `duration` must be provided.
 
 ### Configuration
 

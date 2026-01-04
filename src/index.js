@@ -733,13 +733,23 @@ export default class Gantt {
         // Create task rows
         const row_height = this.options.bar_height + this.options.padding;
         this.tasks.forEach((task, index) => {
+            // Determine if task has retro config
+            const hasRetroConfig = Boolean(task.retro_config);
+            const statusClass = hasRetroConfig ? 'task-has-retro' : 'task-no-retro';
+            
             const $row = this.create_el({
-                classes: 'task-info-row',
+                classes: `task-info-row ${statusClass}`,
                 append_to: this.$task_info_body,
             });
             $row.style.height = row_height + 'px';
             $row.style.top = (index * row_height) + 'px';
             $row.setAttribute('data-task-id', task.id);
+            
+            // Apply color coding based on retro config status
+            const backgroundColor = hasRetroConfig
+                ? 'rgba(34, 197, 94, 0.15)'  // Green (emerald-500) for tasks with retro config
+                : 'rgba(239, 68, 68, 0.15)';  // Red (rose-500) for tasks without retro config
+            $row.style.backgroundColor = backgroundColor;
             
             // Click on row to scroll to task in gantt chart
             $row.style.cursor = 'pointer';
@@ -767,7 +777,7 @@ export default class Gantt {
                 }
             });
             
-            // Apply custom row color if provided
+            // Apply custom row color if provided (this will override the default color coding)
             if (this.options.task_info_row_color && typeof this.options.task_info_row_color === 'function') {
                 const color = this.options.task_info_row_color(task);
                 if (color) {
