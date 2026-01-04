@@ -83,15 +83,15 @@ export default class TaskList {
             append_to: $header,
         });
 
-        const $search_input = this.gantt.create_el({
-            tag: 'input',
-            classes: 'gantt-task-list-search-input',
-            append_to: $search_wrapper,
-        });
-        $search_input.type = 'text';
-        $search_input.placeholder = 'Rechercher une tâche...';
+        // const $search_input = this.gantt.create_el({
+        //     tag: 'input',
+        //     classes: 'gantt-task-list-search-input',
+        //     append_to: $search_wrapper,
+        // });
+        // $search_input.type = 'text';
+        // $search_input.placeholder = 'Rechercher une tâche...';
         
-        this.$search_input = $search_input;
+        // this.$search_input = $search_input;
 
         // Task count
         this.$task_count = this.gantt.create_el({

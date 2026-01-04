@@ -386,8 +386,6 @@ export default class Gantt {
 
     render() {
         // Preserve task info panel state
-        const searchInput = this.$task_info_panel?.querySelector('.task-info-search-input');
-        const searchValue = searchInput?.value || '';
         const isPanelCollapsed = this.$task_info_panel?.classList.contains('collapsed');
         
         this.clear();
@@ -409,18 +407,6 @@ export default class Gantt {
                 const toggleBtn = this.$wrapper?.querySelector('.task-info-toggle');
                 if (toggleBtn) {
                     toggleBtn.innerHTML = '▶';
-                }
-            }
-            
-            // Restore search input value and reapply filter
-            if (searchValue) {
-                const newSearchInput = this.$task_info_panel.querySelector('.task-info-search-input');
-                if (newSearchInput) {
-                    newSearchInput.value = searchValue;
-                    // Reapply the filter using the stored function
-                    if (this.apply_task_filter) {
-                        this.apply_task_filter(searchValue);
-                    }
                 }
             }
         }
@@ -617,97 +603,97 @@ export default class Gantt {
         });
         this.$task_info_header.style.height = this.config.header_height + 'px';
 
-        // Add search box if enabled
-        if (this.options.task_info_enable_search) {
-            const $search_container = this.create_el({
-                classes: 'task-info-search',
-                append_to: this.$task_info_header,
-            });
-            
-            const $search_input = document.createElement('input');
-            $search_input.type = 'text';
-            $search_input.placeholder = 'Search tasks...';
-            $search_input.className = 'task-info-search-input';
-            $search_container.appendChild($search_input);
-            
-            // Create filter function that can be called from anywhere
-            this.apply_task_filter = (searchTerm) => {
-                const rows = this.$task_info_body?.querySelectorAll('.task-info-row');
-                if (!rows) return;
-                
-                if (!searchTerm) {
-                    // Reset to original order and show all
-                    this._filtered_tasks = null;
-                    const row_height = this.options.bar_height + this.options.padding;
-                    this.tasks.forEach((task, index) => {
-                        const row = Array.from(rows).find(r => r.getAttribute('data-task-id') === task.id);
-                        const bar = this.bars?.find(b => b.task.id === task.id);
-                        
-                        if (row) {
-                            row.style.display = '';
-                            row.style.top = (index * row_height) + 'px';
-                        }
-                        if (bar) {
-                            bar.group.style.display = '';
-                            const newY = this.config.header_height + (index * row_height) + this.options.padding / 2;
-                            bar.update_bar_position({ y: newY });
-                        }
-                    });
-                    // Show all arrows
-                    this.arrows?.forEach(arrow => {
-                        arrow.element.style.display = '';
-                    });
-                } else {
-                    // Filter and reorder
-                    const filteredTasks = this.tasks.filter(task => {
-                        const taskText = Object.values(task)
-                            .filter(v => typeof v === 'string' || typeof v === 'number')
-                            .join(' ')
-                            .toLowerCase();
-                        return taskText.includes(searchTerm.toLowerCase());
-                    });
-                    
-                    this._filtered_tasks = filteredTasks;
-                    const row_height = this.options.bar_height + this.options.padding;
-                    
-                    // Update positions for all tasks
-                    let visibleIndex = 0;
-                    this.tasks.forEach((task) => {
-                        const row = Array.from(rows).find(r => r.getAttribute('data-task-id') === task.id);
-                        const bar = this.bars?.find(b => b.task.id === task.id);
-                        
-                        if (filteredTasks.includes(task)) {
-                            // Show and reposition
-                            if (row) {
-                                row.style.display = '';
-                                row.style.top = (visibleIndex * row_height) + 'px';
-                            }
-                            if (bar) {
-                                bar.group.style.display = '';
-                                const newY = this.config.header_height + (visibleIndex * row_height) + this.options.padding / 2;
-                                bar.update_bar_position({ y: newY });
-                            }
-                            visibleIndex++;
-                        } else {
-                            // Hide non-matching tasks
-                            if (row) row.style.display = 'none';
-                            if (bar) bar.group.style.display = 'none';
-                        }
-                    });
-                    
-                    // Hide all dependency arrows during search
-                    this.arrows?.forEach(arrow => {
-                        arrow.element.style.display = 'none';
-                    });
-                }
-            };
-            
-            // Search functionality
-            $search_input.addEventListener('input', (e) => {
-                const searchTerm = e.target.value.toLowerCase();
-                this.apply_task_filter(searchTerm);
-            });
-        }
+        // Add search box if enabled - DISABLED: Search moved to parent component
+        // if (this.options.task_info_enable_search) {
+        //     const $search_container = this.create_el({
+        //         classes: 'task-info-search',
+        //         append_to: this.$task_info_header,
+        //     });
+        //     
+        //     const $search_input = document.createElement('input');
+        //     $search_input.type = 'text';
+        //     $search_input.placeholder = 'Search tasks...';
+        //     $search_input.className = 'task-info-search-input';
+        //     $search_container.appendChild($search_input);
+        //     
+        //     // Create filter function that can be called from anywhere
+        //     this.apply_task_filter = (searchTerm) => {
+        //         const rows = this.$task_info_body?.querySelectorAll('.task-info-row');
+        //         if (!rows) return;
+        //         
+        //         if (!searchTerm) {
+        //             // Reset to original order and show all
+        //             this._filtered_tasks = null;
+        //             const row_height = this.options.bar_height + this.options.padding;
+        //             this.tasks.forEach((task, index) => {
+        //                 const row = Array.from(rows).find(r => r.getAttribute('data-task-id') === task.id);
+        //                 const bar = this.bars?.find(b => b.task.id === task.id);
+        //                 
+        //                 if (row) {
+        //                     row.style.display = '';
+        //                     row.style.top = (index * row_height) + 'px';
+        //                 }
+        //                 if (bar) {
+        //                     bar.group.style.display = '';
+        //                     const newY = this.config.header_height + (index * row_height) + this.options.padding / 2;
+        //                     bar.update_bar_position({ y: newY });
+        //                 }
+        //             });
+        //             // Show all arrows
+        //             this.arrows?.forEach(arrow => {
+        //                 arrow.element.style.display = '';
+        //             });
+        //         } else {
+        //             // Filter and reorder
+        //             const filteredTasks = this.tasks.filter(task => {
+        //                 const taskText = Object.values(task)
+        //                     .filter(v => typeof v === 'string' || typeof v === 'number')
+        //                     .join(' ')
+        //                     .toLowerCase();
+        //                 return taskText.includes(searchTerm.toLowerCase());
+        //             });
+        //             
+        //             this._filtered_tasks = filteredTasks;
+        //             const row_height = this.options.bar_height + this.options.padding;
+        //             
+        //             // Update positions for all tasks
+        //             let visibleIndex = 0;
+        //             this.tasks.forEach((task) => {
+        //                 const row = Array.from(rows).find(r => r.getAttribute('data-task-id') === task.id);
+        //                 const bar = this.bars?.find(b => b.task.id === task.id);
+        //                 
+        //                 if (filteredTasks.includes(task)) {
+        //                     // Show and reposition
+        //                     if (row) {
+        //                         row.style.display = '';
+        //                         row.style.top = (visibleIndex * row_height) + 'px';
+        //                     }
+        //                     if (bar) {
+        //                         bar.group.style.display = '';
+        //                         const newY = this.config.header_height + (visibleIndex * row_height) + this.options.padding / 2;
+        //                         bar.update_bar_position({ y: newY });
+        //                     }
+        //                     visibleIndex++;
+        //                 } else {
+        //                     // Hide non-matching tasks
+        //                     if (row) row.style.display = 'none';
+        //                     if (bar) bar.group.style.display = 'none';
+        //                 }
+        //             });
+        //             
+        //             // Hide all dependency arrows during search
+        //             this.arrows?.forEach(arrow => {
+        //                 arrow.element.style.display = 'none';
+        //             });
+        //         }
+        //     };
+        //     
+        //     // Search functionality
+        //     $search_input.addEventListener('input', (e) => {
+        //         const searchTerm = e.target.value.toLowerCase();
+        //         this.apply_task_filter(searchTerm);
+        //     });
+        // }
 
         // Add column headers
         let left = 0;
@@ -733,23 +719,13 @@ export default class Gantt {
         // Create task rows
         const row_height = this.options.bar_height + this.options.padding;
         this.tasks.forEach((task, index) => {
-            // Determine if task has retro config
-            const hasRetroConfig = Boolean(task.retro_config);
-            const statusClass = hasRetroConfig ? 'task-has-retro' : 'task-no-retro';
-            
             const $row = this.create_el({
-                classes: `task-info-row ${statusClass}`,
+                classes: 'task-info-row',
                 append_to: this.$task_info_body,
             });
             $row.style.height = row_height + 'px';
             $row.style.top = (index * row_height) + 'px';
             $row.setAttribute('data-task-id', task.id);
-            
-            // Apply color coding based on retro config status
-            const backgroundColor = hasRetroConfig
-                ? 'rgba(34, 197, 94, 0.15)'  // Green (emerald-500) for tasks with retro config
-                : 'rgba(239, 68, 68, 0.15)';  // Red (rose-500) for tasks without retro config
-            $row.style.backgroundColor = backgroundColor;
             
             // Click on row to scroll to task in gantt chart
             $row.style.cursor = 'pointer';
@@ -777,7 +753,16 @@ export default class Gantt {
                 }
             });
             
-            // Apply custom row color if provided (this will override the default color coding)
+            // Apply custom row color based on retro_config or custom function
+            if (task.retro_config) {
+                // Green background for tasks with retro config
+                $row.style.backgroundColor = 'rgba(134, 239, 172, 0.3)'; // green-300 with opacity
+            } else {
+                // Red background for tasks without retro config
+                $row.style.backgroundColor = 'rgba(252, 165, 165, 0.3)'; // red-300 with opacity
+            }
+            
+            // Allow custom function to override if provided
             if (this.options.task_info_row_color && typeof this.options.task_info_row_color === 'function') {
                 const color = this.options.task_info_row_color(task);
                 if (color) {
