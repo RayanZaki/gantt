@@ -374,7 +374,7 @@ export default class Bar {
         $.on(this.group, 'mouseleave', () => {
             clearTimeout(timeout);
             if (this.gantt.options.popup_on === 'hover')
-                this.gantt.popup?.hide?.();
+                this.gantt.popup?.schedule_hide?.(100);
             this.gantt.$container
                 .querySelector(`.highlight-${task_id}`)
                 .classList.add('hide');

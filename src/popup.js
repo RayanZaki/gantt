@@ -3,8 +3,10 @@ export default class Popup {
         this.parent = parent;
         this.popup_func = popup_func;
         this.gantt = gantt;
+        this.hideTimeout = null;
 
         this.make();
+        this.bind_events();
     }
 
     make() {
@@ -91,5 +93,33 @@ export default class Popup {
 
     hide() {
         this.parent.classList.add('hide');
+        if (this.hideTimeout) {
+            clearTimeout(this.hideTimeout);
+            this.hideTimeout = null;
+        }
+    }
+
+    bind_events() {
+        // Keep popup visible when mouse enters it
+        this.parent.addEventListener('mouseenter', () => {
+            if (this.hideTimeout) {
+                clearTimeout(this.hideTimeout);
+                this.hideTimeout = null;
+            }
+        });
+
+        // Hide popup with delay when mouse leaves it
+        this.parent.addEventListener('mouseleave', () => {
+            this.schedule_hide();
+        });
+    }
+
+    schedule_hide(delay = 100) {
+        if (this.hideTimeout) {
+            clearTimeout(this.hideTimeout);
+        }
+        this.hideTimeout = setTimeout(() => {
+            this.hide();
+        }, delay);
     }
 }
