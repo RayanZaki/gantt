@@ -50,9 +50,43 @@ export default class Popup {
         if (this.actions.innerHTML === '') this.actions.remove();
         else this.parent.appendChild(this.actions);
 
+        // Initially position the popup
         this.parent.style.left = x + 10 + 'px';
         this.parent.style.top = y - 10 + 'px';
         this.parent.classList.remove('hide');
+
+        // Get container and popup dimensions
+        const container = this.gantt.$container;
+        const containerRect = container.getBoundingClientRect();
+        const popupRect = this.parent.getBoundingClientRect();
+        
+        // Calculate overflow and adjust position if needed
+        let finalX = x + 10;
+        let finalY = y - 10;
+        
+        // Check right overflow
+        if (popupRect.right > containerRect.right) {
+            finalX = x - popupRect.width - 10;
+        }
+        
+        // Check bottom overflow
+        if (popupRect.bottom > containerRect.bottom) {
+            finalY = y - popupRect.height - 10;
+        }
+        
+        // Check top overflow (after adjustment)
+        if (finalY < 0) {
+            finalY = y + 20; // Position below the cursor
+        }
+        
+        // Check left overflow (after adjustment)
+        if (finalX < 0) {
+            finalX = 10;
+        }
+        
+        // Apply final position
+        this.parent.style.left = finalX + 'px';
+        this.parent.style.top = finalY + 'px';
     }
 
     hide() {
